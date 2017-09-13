@@ -22,6 +22,10 @@ end
     get_z()::T = x + y
 end
 
+@interface Ifc4{T <: Integer}(x::Integer) begin
+    bar(y::T)::T = x - y
+end
+
 end
 
 @testset "simple interface" begin
@@ -50,5 +54,13 @@ end
     @test @wrappedallocs(y .= M1.get_z.(I)) == 0
 end
 
+@testset "parametric interface with no args" begin
+    I = [M1.Ifc3{Complex{Float64}}(1, 2.0), M1.Ifc3{Complex{Float64}}(3, 4.0)]
+    @test M1.get_z.(I) == [3.0 + 0im, 7.0 + 0im]
+end
 
+@testset "parametric interface with restriction" begin
+    i1 = M1.Ifc4{Int}(23)
+    @test @inferred(M1.bar(i1, 5)) === 18
+end
 
