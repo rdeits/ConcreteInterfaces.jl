@@ -2,7 +2,8 @@ module Interfaces
 
 export @interface
 
-using ComputedFieldTypes
+include("ComputedFieldTypes/src/ComputedFieldTypes.jl")
+using .ComputedFieldTypes
 using FunctionWrappers: FunctionWrapper
 using MacroTools
 
