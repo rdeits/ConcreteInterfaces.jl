@@ -11,7 +11,7 @@ macro wrappedallocs(expr)
 end
 
 @testset "computed field types" begin
-    include("../src/ComputedFieldTypes/test/runtests.jl")
+    include("computed/runtests.jl")
 end
 
 include("simple_interface.jl")

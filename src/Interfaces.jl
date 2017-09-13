@@ -38,37 +38,55 @@ end
 
 parse_constructor(typeexpr::Symbol, capture) = :($(typeexpr)($(capture)))
 
-function parse_constructor(typeexpr, capture)
-    @assert @capture(typeexpr, S_{T__})
-    :($S{$(baretype.(T)...)}($(capture)) where {$(T...)})
+function build_constructor(name, T, captures)
+    :($name{$(baretype.(T)...)}($(captures...)) where {$(T...)})
 end
 
 function parse_closure(expr)
     @assert @capture(expr, f_(args__)::T_ = body_)
-    :($(args...) -> $(body))
-end
-
-function outer_method(typeexpr, methodexpr)
-    interface_argtype = if @capture(typeexpr, S_{T__})
-        S
+    if isempty(args)
+        :(() -> $(body))
     else
-        typeexpr
+        :($(args...) -> $(body))
     end
-    @assert @capture(methodexpr, f_(args__)::T_ = body_)
-    :($f(self::$(interface_argtype), $(args...)) where {$(parse_type_params(typeexpr)...)} = self.$f($(args...)))
 end
 
-macro interface(name, capture, block)
+function outer_method(name, typeparams, methodexpr)
+    @assert @capture(methodexpr, f_(args__)::T_ = body_)
+    argtype = if isempty(typeparams)
+        name
+    else
+        :($(name){$(baretype.(typeparams)...)})
+    end
+    :($f(self::$(argtype), $(args...)) where {$(typeparams...)} = self.$f($(args...)))
+end
+
+function parse_name(constructor)
+    if @capture(constructor, S_{T__}(args__))
+        return S, T, args
+    elseif @capture(constructor, S_(args__))
+        return S, [], args
+    else
+        error("couldn't parse $(constructor)")
+    end
+end
+
+add_any(x::Symbol) = :($x::Any)
+add_any(x::Expr) = x
+
+macro interface(constructor, block)
     method_args = [arg for arg in block.args if arg.head == :(=)]
     wrapper_fields = parse_wrapper_field.(method_args)
+    name, typeparams, captures = parse_name(constructor)
     quote
-        @computed struct $(esc(name)) <: AbstractInterface
+        @computed struct $(esc(name)){$(esc.(typeparams)...)} <: AbstractInterface
+            $(esc.(add_any.(captures))...)
             $(wrapper_fields...)
                     
-            $(esc(parse_constructor(name, capture))) = new($(esc.(parse_closure.(method_args))...))
+            $(esc(build_constructor(name, typeparams, captures))) = new($(esc.(captures)...), $(esc.(parse_closure.(method_args))...))
         end
                 
-        $(esc.(outer_method.(name, method_args))...)
+        $(esc.(outer_method.(name, [typeparams], method_args))...)
     end
 end
 

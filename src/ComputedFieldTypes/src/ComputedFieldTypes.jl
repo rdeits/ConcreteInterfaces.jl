@@ -66,7 +66,7 @@ function _computed(typeexpr::Expr)
     end
 
     # rewrite constructors
-    if isempty(ctors)
+    if isempty(ctors) && !isempty(decl_tvars)
         # normally, Julia would add 3 default constructors here
         # however, two of those are not computable, so we don't add them
         push!(fields, Expr(:function, Expr(:call, Expr(:curly, make_Type_expr(tname, decl_tvars), decl_tvars...), fieldnames...),
@@ -117,7 +117,13 @@ end
 "
 # make the `::Type{T}` expression that is equivalent to the original type declaration
 "
-make_Type_expr(tname, decl_tvars) = Expr(:(::), Expr(:curly, Expr(:top, :Type), Expr(:curly, tname, decl_tvars...)))
+function make_Type_expr(tname, decl_tvars)
+    if isempty(decl_tvars) 
+        Expr(:(::), tname)
+    else
+        Expr(:(::), Expr(:curly, Expr(:top, :Type), Expr(:curly, tname, decl_tvars...)))
+    end
+end
 
 "
 # compute the leaf `T{...}` expression that describes the new type declaration
@@ -138,6 +144,9 @@ end
 "
 rewrite_new!(e::ANY, tname::Symbol, decl_tvars, def) = nothing
 function rewrite_new!(e::Expr, tname::Symbol, decl_tvars, def)
+    if isempty(decl_tvars)
+        return
+    end
     if e.head !== :line
         for i = 1:length(e.args)
             rewrite_new!(e.args[i], tname, decl_tvars, def)
