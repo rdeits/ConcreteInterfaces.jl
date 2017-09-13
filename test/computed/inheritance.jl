@@ -1,5 +1,5 @@
 module InheritanceTest
-using ComputedFieldTypes
+using Interfaces.ComputedFieldTypes
 using Base.Test
 
 abstract type Bar end

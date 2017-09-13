@@ -66,10 +66,18 @@ function _computed(typeexpr::Expr)
     end
 
     # rewrite constructors
-    if isempty(ctors) && !isempty(decl_tvars)
+    if isempty(ctors) && !isempty(def)
         # normally, Julia would add 3 default constructors here
         # however, two of those are not computable, so we don't add them
-        push!(fields, Expr(:function, Expr(:call, Expr(:curly, make_Type_expr(tname, decl_tvars), decl_tvars...), fieldnames...),
+        constructor_expr = if isempty(decl_tvars)
+            :(::Type{$tname})
+        else
+            Expr(:curly, make_Type_expr(tname, decl_tvars), decl_tvars...)
+        end
+        push!(fields, Expr(:function, 
+            Expr(:call, 
+                 constructor_expr,
+                 fieldnames...),
                            Expr(:block, Expr(:return, Expr(:call, make_new_expr(:new, decl_tvars, def), fieldnames...)))))
     else
         for e in ctors
@@ -144,7 +152,7 @@ end
 "
 rewrite_new!(e::ANY, tname::Symbol, decl_tvars, def) = nothing
 function rewrite_new!(e::Expr, tname::Symbol, decl_tvars, def)
-    if isempty(decl_tvars)
+    if isempty(def)
         return
     end
     if e.head !== :line
