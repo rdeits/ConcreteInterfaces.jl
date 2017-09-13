@@ -9,14 +9,6 @@ using MacroTools
 
 abstract type AbstractInterface end
 
-function parse_type_params(name_expr)
-    if @capture(name_expr, S_{T__})
-        return T
-    else
-        return []
-    end
-end 
-
 function argtype(expr)
     if @capture(expr, x_::T_)
         return T
@@ -35,8 +27,6 @@ function baretype(ex::Expr)
     @assert @capture(ex, X_ <: T_)
     return X
 end
-
-parse_constructor(typeexpr::Symbol, capture) = :($(typeexpr)($(capture)))
 
 function build_constructor(name, T, captures)
     :($name{$(baretype.(T)...)}($(captures...)) where {$(T...)})
