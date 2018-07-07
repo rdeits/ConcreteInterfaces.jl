@@ -1,5 +1,5 @@
 module M1
-using Interfaces
+using ConcreteInterfaces
 
 struct B
     x::Int

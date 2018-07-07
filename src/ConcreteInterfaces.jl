@@ -1,6 +1,6 @@
 __precompile__()
 
-module Interfaces
+module ConcreteInterfaces
 
 export @interface
 
@@ -74,10 +74,10 @@ macro interface(constructor, block)
         @computed struct $(esc(name)){$(esc.(typeparams)...)} <: AbstractInterface
             $(esc.(add_any.(captures))...)
             $(wrapper_fields...)
-                    
+
             $(esc(build_constructor(name, typeparams, captures))) = new($(esc.(captures)...), $(esc.(parse_closure.(method_args))...))
         end
-                
+
         $(esc.(outer_method.(name, [typeparams], method_args))...)
     end
 end
