@@ -1,5 +1,5 @@
 module M2
-using Interfaces
+using ConcreteInterfaces
 
 abstract type A end
 

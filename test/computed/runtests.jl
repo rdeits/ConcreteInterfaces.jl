@@ -1,4 +1,4 @@
-using Interfaces.ComputedFieldTypes
+using ConcreteInterfaces.ComputedFieldTypes
 using Base.Test
 
 # Verify that @computed works on types with no computed fields
