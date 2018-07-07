@@ -16,3 +16,8 @@ end
 
 include("simple_interface.jl")
 include("interface_with_parent.jl")
+
+module NotebookTest
+    using NBInclude
+    @nbinclude(joinpath(@__DIR__, "..", "demo.ipynb"))
+end
