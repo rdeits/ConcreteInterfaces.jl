@@ -1,4 +1,4 @@
-@computed type A{V <: AbstractVector}
+@computed mutable struct A{V <: AbstractVector}
     a::eltype(V)
 end
 
@@ -7,16 +7,16 @@ end
     @test a.a === Int(3)
 end
 
-@computed type B{N, M, T}
+@computed mutable struct B{N, M, T}
     a::NTuple{N + M, T}
-    B(x::T) = new{N, M, T}(ntuple(i -> x, N + M))
-    B{S}(x::S) = B{N, M, T}(convert(T, x))
+    B{N, M, T}(x::T) where {N, M, T} = new{N, M, T}(ntuple(i -> x, N + M))
+    B{N, M, T}(x::S) where {N, M, T, S} = B{N, M, T}(convert(T, x))
 end
 
-@computed type C{T <: Number}
+@computed mutable struct C{T <: Number}
     a::typeof(one(T) / one(T))
-    C() = new(0)
-    function C(x)
+    C{T <: Number}() where {T <: Number} = new(0)
+    function C{T <: Number}(x) where T <: Number
         return new(x)
     end
 end
